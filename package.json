@@ -1,6 +1,6 @@
 {
   "name": "hubot-backlog-assign",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A Hubot script that that assigns the backlog issue to reviewer",
   "main": "index.js",
   "scripts": {
