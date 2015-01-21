@@ -48,6 +48,7 @@
     "through2": "^0.6.1"
   },
   "dependencies": {
+    "hubot-config": "^1.0.1",
     "request-b": "^1.0.0"
   }
 }

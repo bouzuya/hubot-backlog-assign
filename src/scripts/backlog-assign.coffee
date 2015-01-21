@@ -12,19 +12,26 @@
 # Author:
 #   bouzuya <m@bouzuya.net>
 #
-module.exports = (robot) ->
-  request = require 'request-b'
+request = require 'request-b'
+parseConfig = require 'hubot-config'
 
-  SPACE_ID = process.env.HUBOT_BACKLOG_ASSIGN_SPACE_ID
-  API_KEY = process.env.HUBOT_BACKLOG_ASSIGN_API_KEY
-  USER_NAMES = JSON.parse(process.env.HUBOT_BACKLOG_ASSIGN_USER_NAMES ? '{}')
+config =
+  parseConfig 'backlog-assign',
+    spaceId: null
+    apiKey: null
+    userNames: '{}'
+
+module.exports = (robot) ->
+  config.userNames = JSON.parse(config.userNames)
+
+  baseUrl = "https://#{config.spaceId}.backlog.jp"
 
   getIssue = (issueKey) ->
     request
       method: 'GET'
-      url: "https://#{SPACE_ID}.backlog.jp/api/v2/issues/#{issueKey}"
+      url: "#{baseUrl}/api/v2/issues/#{issueKey}"
       qs:
-        apiKey: API_KEY
+        apiKey: config.apiKey
     .then (res) ->
       throw new Error(res.body) if res.statusCode >= 400
       JSON.parse(res.body)
@@ -32,9 +39,9 @@ module.exports = (robot) ->
   getGithubUrl = (issueKey) ->
     request
       method: 'GET'
-      url: "https://#{SPACE_ID}.backlog.jp/api/v2/issues/#{issueKey}/comments"
+      url: "#{baseUrl}/api/v2/issues/#{issueKey}/comments"
       qs:
-        apiKey: API_KEY
+        apiKey: config.apiKey
     .then (res) ->
       throw new Error(res.body) if res.statusCode >= 400
       comments = JSON.parse(res.body).reverse()
@@ -46,9 +53,9 @@ module.exports = (robot) ->
   getUser = (projectKey, name) ->
     request
       method: 'GET'
-      url: "https://#{SPACE_ID}.backlog.jp/api/v2/projects/#{projectKey}/users"
+      url: "#{baseUrl}/api/v2/projects/#{projectKey}/users"
       qs:
-        apiKey: API_KEY
+        apiKey: config.apiKey
     .then (res) ->
       throw new Error(res.body) if res.statusCode >= 400
       users = JSON.parse(res.body)
@@ -57,9 +64,9 @@ module.exports = (robot) ->
   updateIssue = ({ issueKey, assigneeId, comment }) ->
     request
       method: 'PATCH'
-      url: "https://#{SPACE_ID}.backlog.jp/api/v2/issues/#{issueKey}"
+      url: "#{baseUrl}/api/v2/issues/#{issueKey}"
       qs:
-        apiKey: API_KEY
+        apiKey: config.apiKey
       form:
         assigneeId: assigneeId
         comment: comment
@@ -95,7 +102,7 @@ module.exports = (robot) ->
           .then (issue) ->
             res.send """
               #{issue.issueKey} #{issue.summary}
-              https://#{SPACE_ID}.backlog.jp/view/#{issue.issueKey}
+              #{baseUrl}/view/#{issue.issueKey}
               #{comment}
             """
           .then null, (e) ->
@@ -106,7 +113,7 @@ module.exports = (robot) ->
     reviewerChatName = res.match[1]
     projectKey = res.match[2]
     issueNo = res.match[3]
-    reviewerName = USER_NAMES[reviewerChatName]
+    reviewerName = config.userNames[reviewerChatName]
     return res.send """
       unknown user: #{reviewerChatName}
       please set HUBOT_BACKLOG_ASSIGN_USER_NAMES.
