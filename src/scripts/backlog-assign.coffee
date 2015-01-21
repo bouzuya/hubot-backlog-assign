@@ -15,13 +15,13 @@
 request = require 'request-b'
 parseConfig = require 'hubot-config'
 
-config =
-  parseConfig 'backlog-assign',
-    spaceId: null
-    apiKey: null
-    userNames: '{}'
-
 module.exports = (robot) ->
+  config =
+    parseConfig 'backlog-assign',
+      spaceId: null
+      apiKey: null
+      userNames: '{}'
+
   config.userNames = JSON.parse(config.userNames)
 
   baseUrl = "https://#{config.spaceId}.backlog.jp"

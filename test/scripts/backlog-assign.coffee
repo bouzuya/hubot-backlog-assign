@@ -5,6 +5,11 @@ sinon = require 'sinon'
 
 describe 'hello', ->
   beforeEach (done) ->
+    @env = process.env
+    process.env =
+      HUBOT_BACKLOG_ASSIGN_API_KEY: 'xxx'
+      HUBOT_BACKLOG_ASSIGN_SPACE_ID: 'space'
+      HUBOT_BACKLOG_ASSIGN_USER_NAMES: '{"bouzuya": "bouzuya", "hoge": "fuga"}'
     @sinon = sinon.sandbox.create()
     # for warning: possible EventEmitter memory leak detected.
     # process.on 'uncaughtException'
@@ -18,6 +23,7 @@ describe 'hello', ->
   afterEach (done) ->
     @robot.brain.on 'close', =>
       @sinon.restore()
+      process.env = @env
       done()
     @robot.shutdown()
 
