@@ -19,6 +19,16 @@ module.exports = (robot) ->
   API_KEY = process.env.HUBOT_BACKLOG_ASSIGN_API_KEY
   USER_NAMES = JSON.parse(process.env.HUBOT_BACKLOG_ASSIGN_USER_NAMES ? '{}')
 
+  getIssue = (issueKey) ->
+    request
+      method: 'GET'
+      url: "https://#{SPACE_ID}.backlog.jp/api/v2/issues/#{issueKey}"
+      qs:
+        apiKey: API_KEY
+    .then (res) ->
+      throw new Error(res.body) if res.statusCode >= 400
+      JSON.parse(res.body)
+
   getGithubUrl = (issueKey) ->
     request
       method: 'GET'
@@ -62,27 +72,35 @@ module.exports = (robot) ->
     githubUrl = null
     comment = null
     assigneeId = null
-    getGithubUrl(issueKey)
-      .then (g) ->
-        githubUrl = g
-        comment = """
-          レビューをおねがいします。
-          #{githubUrl}
-        """
-        getUser projectKey, reviewer
-      .then (u) ->
-        assigneeId = u.id
-      .then ->
-        updateIssue { issueKey, assigneeId, comment }
+    getIssue(issueKey)
       .then (issue) ->
-        res.send """
+        return res.send("""
           #{issue.issueKey} #{issue.summary}
-          https://#{SPACE_ID}.backlog.jp/view/#{issue.issueKey}
-          #{comment}
-        """
-      .then null, (e) ->
-        res.robot.logger.error(e)
-        res.send 'hubot-backlog-assign: error'
+          #{baseUrl}/view/#{issue.issueKey}
+
+          まだ処理中ですよ？
+        """) unless issue.status.id is 3
+        getGithubUrl(issueKey)
+          .then (g) ->
+            githubUrl = g
+            comment = """
+              レビューをおねがいします。
+              #{githubUrl}
+            """
+            getUser projectKey, reviewer
+          .then (u) ->
+            assigneeId = u.id
+          .then ->
+            updateIssue { issueKey, assigneeId, comment }
+          .then (issue) ->
+            res.send """
+              #{issue.issueKey} #{issue.summary}
+              https://#{SPACE_ID}.backlog.jp/view/#{issue.issueKey}
+              #{comment}
+            """
+          .then null, (e) ->
+            res.robot.logger.error(e)
+            res.send 'hubot-backlog-assign: error'
 
   robot.hear /^[@]?([^:,]+)[:,]?\s*(?:review ([a-zA-Z_]+)-(\d+)$)/, (res) ->
     reviewerChatName = res.match[1]
