@@ -47,7 +47,7 @@ module.exports = (robot) ->
       comments = JSON.parse(res.body).reverse()
       comments
         .map (c) ->
-          c.content.match(/(https:\/\/github\.com\/\S+)/)?[1]
+          c.content?.match(/(https:\/\/github\.com\/\S+)/)?[1]
         .filter((m) -> m)[0]
 
   getUser = (projectKey, name) ->
