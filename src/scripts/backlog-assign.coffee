@@ -42,10 +42,10 @@ module.exports = (robot) ->
       url: "#{baseUrl}/api/v2/issues/#{issueKey}/comments"
       qs:
         apiKey: config.apiKey
+        order: 'desc'
     .then (res) ->
       throw new Error(res.body) if res.statusCode >= 400
-      comments = JSON.parse(res.body).reverse()
-      comments
+      JSON.parse(res.body)
         .map (c) ->
           c.content?.match(/(https:\/\/github\.com\/\S+)/)?[1]
         .filter((m) -> m)[0]
