@@ -33,6 +33,9 @@ describe 'hello', ->
         @tests = [
           message: '@bouzuya: review BOUZUYA-123'
           matches: ['@bouzuya: review BOUZUYA-123', 'bouzuya', 'BOUZUYA', '123']
+        ,
+          message: '@bouzuya review BOUZUYA-123'
+          matches: ['@bouzuya review BOUZUYA-123', 'bouzuya', 'BOUZUYA', '123']
         ]
 
       it 'should match', ->

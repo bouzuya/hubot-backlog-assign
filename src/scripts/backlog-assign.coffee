@@ -109,7 +109,7 @@ module.exports = (robot) ->
             res.robot.logger.error(e)
             res.send 'hubot-backlog-assign: error'
 
-  robot.hear /^[@]?([^:,]+)[:,]?\s*(?:review ([a-zA-Z_]+)-(\d+)$)/, (res) ->
+  robot.hear /^[@]?([^:,\s]+)[:,]?\s*(?:review ([a-zA-Z_]+)-(\d+)$)/, (res) ->
     reviewerChatName = res.match[1]
     projectKey = res.match[2]
     issueNo = res.match[3]
